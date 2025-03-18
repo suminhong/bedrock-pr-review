@@ -24,19 +24,19 @@ Follow these guidelines:
 - Keep suggestions concise but clear
 - Return response in the exact JSON format specified below:
 
-{
+{{
   "entire_review": "Overall review of the code changes, highlighting main points and patterns",
   "suggestions": [
-    {
+    {{
       "file_path": "exact path of the file",
-      "line_numbers": {
+      "line_numbers": {{
         "start": starting line number (integer),
         "end": ending line number (integer)
-      },
+      }},
       "suggest_content": "specific suggestion for improvement"
-    }
+    }}
   ]
-}
+}}
 
 Ensure all suggestions are well-defined with exact file locations."""),
             ("human", "Here is the PR diff to review:\n{diff}")
