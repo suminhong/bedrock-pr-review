@@ -23,20 +23,19 @@ class PRReviewer:
 - 실행 가능한 제안을 제공하세요
 - 제안은 간결하면서도 명확해야 합니다
 
-파일 경로 추출 방법 (중요: GitHub PR diff 형식 기준):
-1. diff 헤더에서 파일 경로 추출
-   - diff 헤더는 'diff --git a/[file_path] b/[file_path]' 형식으로 시작합니다
-   - 예시: 'diff --git a/src/main.py b/src/main.py'
-   - 이 경우 file_path는 'src/main.py'를 사용해야 합니다
+파일 경로 추출 방법:
+1. 파일 경로 표시자 확인
+   - 각 파일의 내용은 '# FILE_PATH: [file_path]' 형식으로 시작합니다
+   - 예시: '# FILE_PATH: utils/requests.py'
+   - 이 경우 file_path는 'utils/requests.py'를 사용해야 합니다
 
 2. 파일 경로 추출 규칙
-   - a/나 b/ 접두어를 제외하고 경로를 사용하세요
-   - 절대 경로가 아닌 상대 경로를 사용하세요
+   - '# FILE_PATH:' 뒤의 경로를 그대로 사용하세요
+   - 경로 앞뒤의 공백을 제거하고 사용하세요
    - 경로를 임의로 변경하거나 수정하지 마세요
 
 3. 라인 번호 추출
-   - @@ -[start],[count] +[start],[count] @@ 형식의 hunk 헤더를 참고하세요
-   - 예시: '@@ -15,7 +15,8 @@'
+   - 코드 변경이 시작되는 줄부터 끝나는 줄까지의 번호를 파악하세요
    - 변경된 코드 부분의 정확한 시작과 끝 라인을 파악하세요
 
 응답은 아래 지정된 JSON 형식을 정확히 따라야 합니다:
