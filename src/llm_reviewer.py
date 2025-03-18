@@ -26,7 +26,7 @@ class PRReviewer:
         
         self.output_parser = PydanticOutputParser(pydantic_object=ReviewResponse)
         
-        format_instructions = self.output_parser.get_format_instructions()
+        format_instructions = self.output_parser.get_format_instructions().replace('{', '{{').replace('}', '}}')
         prompt_template = f"""
 당신은 풍부한 경험을 가진 전문 코드 리뷰어입니다. 풀 리퀘스트에 대해 상세하고 건설적인 피드백을 제공합니다.
 주어진 코드 변경사항을 검토하고 다음 두 가지 주요 구성요소를 포함하는 응답을 반환하세요:
