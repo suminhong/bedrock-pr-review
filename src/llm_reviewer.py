@@ -1,12 +1,12 @@
 from typing import List, Dict, Any
 import json
 from langchain.prompts import ChatPromptTemplate
-from langchain.chat_models import BedrockChat
+from langchain_aws import ChatBedrockConverse
 from langchain.schema import StrOutputParser
 
 class PRReviewer:
     def __init__(self, model_id: str = "anthropic.claude-v2"):
-        self.llm = BedrockChat(
+        self.llm = ChatBedrockConverse(
             model_id=model_id,
             model_kwargs={"temperature": 0.1, "max_tokens": 4096}
         )
