@@ -27,7 +27,8 @@ class PRReviewer:
         self.output_parser = PydanticOutputParser(pydantic_object=ReviewResponse)
         format_instructions = self.output_parser.get_format_instructions()
         
-        self.review_prompt = ChatPromptTemplate.from_messages([
+        self.review_prompt = ChatPromptTemplate.from_messages(
+            messages=[
             ("system", """당신은 풍부한 경험을 가진 전문 코드 리뷰어입니다. 풀 리퀘스트에 대해 상세하고 건설적인 피드백을 제공합니다.
 주어진 코드 변경사항을 검토하고 다음 두 가지 주요 구성요소를 포함하는 응답을 반환하세요:
 1. 전체 변경사항에 대한 종합적인 리뷰
@@ -54,11 +55,17 @@ class PRReviewer:
    - 코드 변경이 시작되는 줄부터 끝나는 줄까지의 번호를 파악하세요
    - 변경된 코드 부분의 정확한 시작과 끝 라인을 파악하세요
 
+
+응답 형식:
 {format_instructions}
+
+모든 제안은 정확한 파일 위치와 함께 명확하게 정의되어야 합니다.
 
 한국어로 응답해주세요."""),
             ("human", "Here is the PR diff to review:\n{diff}")
-        ])
+        ],
+            partial_variables={"format_instructions": format_instructions}
+        )
 
     def review_pr(self, diff_content: str) -> ReviewResponse:
         """
