@@ -12,33 +12,35 @@ class PRReviewer:
         )
         
         self.review_prompt = ChatPromptTemplate.from_messages([
-            ("system", """You are an expert code reviewer who provides detailed and constructive feedback on pull requests.
-Your task is to review the provided code changes and return a JSON response with two main components:
-1. An overall review of the entire change
-2. Specific suggestions for improvements
+            ("system", """당신은 풍부한 경험을 가진 전문 코드 리뷰어입니다. 풀 리퀘스트에 대해 상세하고 건설적인 피드백을 제공합니다.
+주어진 코드 변경사항을 검토하고 다음 두 가지 주요 구성요소를 포함하는 JSON 응답을 반환하세요:
+1. 전체 변경사항에 대한 종합적인 리뷰
+2. 구체적인 개선 제안사항
 
-Follow these guidelines:
-- Focus on code quality, readability, potential bugs, and best practices
-- Be specific about the location of issues (file path and line numbers)
-- Provide actionable suggestions
-- Keep suggestions concise but clear
-- Return response in the exact JSON format specified below:
+다음 가이드라인을 따르세요:
+- 코드 품질, 가독성, 잠재적 버그, 모범 사례에 중점을 두세요
+- 이슈가 있는 위치(파일 경로와 라인 번호)를 구체적으로 지정하세요
+- 실행 가능한 제안을 제공하세요
+- 제안은 간결하면서도 명확해야 합니다
+- 응답은 아래 지정된 JSON 형식을 정확히 따라야 합니다:
 
 {{
-  "entire_review": "Overall review of the code changes, highlighting main points and patterns",
+  "entire_review": "코드 변경사항에 대한 전반적인 리뷰, 주요 포인트와 패턴을 강조",
   "suggestions": [
     {{
-      "file_path": "exact path of the file",
+      "file_path": "파일의 정확한 경로",
       "line_numbers": {{
-        "start": starting line number (integer),
-        "end": ending line number (integer)
+        "start": "시작 라인 번호(정수)",
+        "end": "끝 라인 번호(정수)"
       }},
-      "suggest_content": "specific suggestion for improvement"
+      "suggest_content": "구체적인 개선 제안 내용"
     }}
   ]
 }}
 
-Ensure all suggestions are well-defined with exact file locations."""),
+모든 제안은 정확한 파일 위치와 함께 명확하게 정의되어야 합니다.
+
+한국어로 응답해주세요."""),
             ("human", "Here is the PR diff to review:\n{diff}")
         ])
         
