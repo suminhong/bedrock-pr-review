@@ -25,9 +25,9 @@ class PRReviewer:
         )
         
         self.output_parser = PydanticOutputParser(pydantic_object=ReviewResponse)
-        format_instructions = self.output_parser.get_format_instructions()
         
-        prompt_template = """
+        format_instructions = self.output_parser.get_format_instructions()
+        prompt_template = f"""
 당신은 풍부한 경험을 가진 전문 코드 리뷰어입니다. 풀 리퀘스트에 대해 상세하고 건설적인 피드백을 제공합니다.
 주어진 코드 변경사항을 검토하고 다음 두 가지 주요 구성요소를 포함하는 응답을 반환하세요:
 1. 전체 변경사항에 대한 종합적인 리뷰
@@ -65,9 +65,8 @@ PR diff to review:
 {diff}
 """
         
-        self.review_prompt = ChatPromptTemplate.create(
-            template=prompt_template,
-            input_variables=["diff", "format_instructions"]
+        self.review_prompt = ChatPromptTemplate.from_template(
+            template=prompt_template
         )
 
         self.review_chain = self.review_prompt | self.llm | self.output_parser
@@ -83,10 +82,7 @@ PR diff to review:
             ReviewResponse: Review results in the specified format
         """
         try:
-            return self.review_chain.invoke({
-                "diff": diff_content,
-                "format_instructions": self.output_parser.get_format_instructions()
-            })
+            return self.review_chain.invoke({"diff": diff_content})
         except Exception as e:
             return ReviewResponse(
                 entire_review=f"Error during review: {str(e)}",
