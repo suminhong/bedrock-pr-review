@@ -12,13 +12,15 @@ class LineNumbers(BaseModel):
     end: int = Field(description="끝 라인 번호")
 
 class Suggestion(BaseModel):
-    file_path: str = Field(description="파일의 정확한 경로")
     line_numbers: LineNumbers = Field(description="변경사항의 시작과 끝 라인 번호")
-    suggest_content: str = Field(description="구체적인 개선 제안 내용")
+    content: str = Field(description="구체적인 개선 제안 내용")
 
-class ReviewResponse(BaseModel):
-    entire_review: str = Field(description="코드 변경사항에 대한 전반적인 리뷰")
-    suggestions: List[Suggestion] = Field(description="구체적인 개선 제안 목록")
+class FileReviewResponse(BaseModel):
+    review: str = Field(description="파일 변경사항에 대한 리뷰 내용")
+    suggestions: Optional[List[Suggestion]] = Field(description="개선 제안 목록", default=[])
+
+class PRSummaryResponse(BaseModel):
+    summary: str = Field(description="전체 PR에 대한 종합적인 리뷰 요약")
 
 class PRReviewer:
     def __init__(self, 
@@ -47,45 +49,48 @@ class PRReviewer:
             model_kwargs={"temperature": 0.1, "max_tokens": 4096}
         )
         
-        prompt = PromptTemplate(
+        self.file_review_prompt = PromptTemplate(
             template="""
-당신은 풍부한 경험을 가진 전문 코드 리뷰어입니다. GitHub 풀 리퀘스트에 대해 상세하고 건설적인 피드백을 제공합니다.
-주어진 코드 변경사항을 검토하고 다음 두 가지 주요 구성요소를 포함하는 응답을 반환하세요:
-1. 전체 변경사항에 대한 종합적인 리뷰
-2. 구체적인 개선 제안사항
+당신은 풍부한 경험을 가진 전문 코드 리뷰어입니다. 주어진 파일의 변경사항에 대해 상세하고 건설적인 피드백을 제공합니다.
+
+파일 경로: {file_path}
 
 다음 가이드라인을 따르세요:
-- 코드 품질, 가독성, 잠재적 버그, 모범 사례에 중점을 두세요
-- 이슈가 있는 위치(파일 경로와 라인 번호)를 정확하게 지정하세요
-- 실행 가능한 제안을 제공하세요
-- 제안은 간결하면서도 명확해야 합니다
+1. 변경사항에 대한 전반적인 리뷰를 제공하세요
+   - 코드 품질, 가독성, 잠재적 버그, 모범 사례 관점에서 분석
+   - 변경사항의 목적과 영향을 평가
+   - 코드의 전반적인 구조와 설계에 대한 의견 제시
 
-GitHub PR diff 형식 이해:
-1. 파일 경로 추출
-   - 각 파일의 변경사항은 'diff --git a/[file_path] b/[file_path]' 형식으로 시작됩니다
-   - 예시: 'diff --git a/src/utils.py b/src/utils.py'
-   - 이 경우 file_path는 'src/utils.py'를 사용해야 합니다
+2. 필요한 경우 구체적인 개선 제안을 제공하세요 (선택사항)
+   - 정확한 라인 번호 지정 (hunk 헤더 @@ -X,Y +P,Q @@ 참고)
+   - 실행 가능하고 구체적인 개선 방안 제시
+   - 간결하면서도 명확한 설명 제공
 
-2. 변경된 라인 추출
-   - '@@ -X,Y +P,Q @@' 형식의 헤더는 변경된 라인 정보를 나타냅니다
-   - X: 이전 파일의 시작 라인
-   - Y: 이전 파일에서 변경된 라인 수
-   - P: 새 파일의 시작 라인
-   - Q: 새 파일에서 변경된 라인 수
-   - 변경 내용은 이 헤더 바로 다음에 나타납니다
-
-3. 변경 유형 구분
-   - '+' 로 시작하는 라인: 새로 추가된 코드
-   - '-' 로 시작하는 라인: 삭제된 코드
-   - 공백으로 시작하는 라인: 변경되지 않은 컨텍스트 코드
+변경사항:
+{diff}
 
 한국어로 응답해주세요.
-
-PR diff to review:
-{diff}
 """,
-            input_variables=["diff"]
-        ).with_structured_output(ReviewResponse)
+            input_variables=["file_path", "diff"]
+        ).with_structured_output(FileReviewResponse)
+
+        self.summary_prompt = PromptTemplate(
+            template="""
+당신은 풍부한 경험을 가진 전문 코드 리뷰어입니다. 각 파일별 리뷰 내용을 바탕으로 전체 PR에 대한 종합적인 요약을 제공해주세요.
+
+파일별 리뷰 내용:
+{file_reviews}
+
+다음을 고려하여 전체 PR에 대한 종합적인 요약을 작성해주세요:
+1. 주요 변경사항과 그 영향
+2. 공통된 패턴이나 이슈
+3. PR의 전반적인 품질과 준비 상태
+4. 주의가 필요한 부분이나 잠재적 위험
+
+한국어로 응답해주세요.
+""",
+            input_variables=["file_reviews"]
+        ).with_structured_output(PRSummaryResponse)
         
         self.review_chain = prompt | self.llm
 
